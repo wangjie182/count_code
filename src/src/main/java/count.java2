@@ -1,0 +1,77 @@
+package src.main.java;           
+import java.io.BufferedReader;           
+import java.io.File;           
+import java.io.FileInputStream;           
+import java.io.FileOutputStream;          
+import java.io.IOException;           
+import java.io.InputStreamReader;           
+import java.io.OutputStream;           
+ 
+public class JavaSrcUtil {               
+private static final String FILE_TYPE = "java";
+private long rows = 0;               
+private final StringBuffer sbBuffer = new StringBuffer();               
+/**                * 根据文件计算代码行数                */               
+public long staticRowsByFile(final File file) throws IOException {                  
+     if (file.isDirectory()) { // 非文件                       
+throw new IOException("is not file:" + file);                   } 
+else if (!file.getName().endsWith("." + FILE_TYPE)) { // 非java文件
+return 0;                   }                   
+long rows = 0;                   
+final FileInputStream fis = new FileInputStream(file); 
+
+final BufferedReader br = new BufferedReader(new InputStreamReader(fis));                  
+String str = null;                   
+while ((str = br.readLine()) != null) {                       
+str = str.trim();                       
+if (str.length() > 1 && !str.startsWith("/") && !str.startsWith("*"))
+{ 
+rows++;                       } 
+
+}                  
+return rows;               } 
+public long staticRowsByDirectory(final File dirFile) throws IOException {   
+if (!dirFile.isDirectory()) {                      
+throw new IOException("is not Directory:" + dirFile); 
+}                   final File[] files = dirFile.listFiles();                  
+for (final File childFile : files) {                      
+if (childFile.isDirectory()) {                          
+staticRowsByDirectory(childFile);                       } 
+else {                           rows += staticRowsByFile(childFile);
+}                   }                   
+return rows;               }              
+public String getSrcByFile(final File file) throws IOException {                   
+    if (file.isDirectory()) { 
+// 非文件                      
+throw new IOException("is not file:" + file);                   } 
+else if (!file.getName().endsWith("." + FILE_TYPE)) { // 非java文件
+return "";                   }                  
+final StringBuffer sbBuffer = new StringBuffer(); 
+final FileInputStream fis = new FileInputStream(file);               
+final BufferedReader br = new BufferedReader(new InputStreamReader(fis)); 
+String str = null;                 
+while ((str = br.readLine()) != null) {   
+if (str.trim().length() > 0) {
+sbBuffer.append(str);                           sbBuffer.append("\\r\\n");                       }                   }        
+return sbBuffer.toString();               }              
+public String getSrcByDirectory(final File dirFile) throws IOException {                  
+    if (!dirFile.isDirectory()) {                       
+        throw new IOException("is not Directory:" + dirFile);                   }                   
+final File[] files = dirFile.listFiles();                   
+for (final File childFile : files) {                      
+if (childFile.isDirectory()) {                          
+getSrcByDirectory(childFile);                       }
+else {                           
+sbBuffer.append(getSrcByFile(childFile));                       }
+}                   return sbBuffer.toString(); 
+}               
+public static void main(final String[] args) throws IOException {                  
+// ass——14014 common——6896 protocol——3531 short-master——1163                  
+ // server——7666+178+7703=15547 web——6583           
+ //        C:\\Users\\Administrator\\Desktop\\work\\俊哥0313\\智慧城市数据驾驶舱                   
+final File file = new File("C:\\Users\\Administrator\\Desktop\\CountCode");              
+final JavaSrcUtil jsu = new JavaSrcUtil();                 
+System.out.println(jsu.staticRowsByDirectory(file));                  
+final OutputStream os = new FileOutputStream(                          
+new File("C:\\Users\\Administrator\\Desktop\\CountCode\\count.java2"));                   
+os.write(jsu.getSrcByDirectory(file).getBytes());               }           }           
